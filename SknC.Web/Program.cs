@@ -1,4 +1,6 @@
 namespace SknC.Web;
+using SknC.Web.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore; 
 
 public class Program
 {
@@ -8,6 +10,10 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+
+        // Configure DbContext with SQLite
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
         var app = builder.Build();
 

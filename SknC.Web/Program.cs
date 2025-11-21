@@ -17,6 +17,23 @@ public class Program
 
         var app = builder.Build();
 
+        // --- SEEDER START ---
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<AppDbContext>();
+                DbInitializer.Initialize(context);
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred while seeding the database.");
+            }
+        }
+        // --- SEEDER END ---
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {

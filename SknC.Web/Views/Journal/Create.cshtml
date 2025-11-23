@@ -1,0 +1,59 @@
+@model SknC.Web.Models.ViewModels.JournalEntryViewModel
+@using SknC.Web.Core.Enums
+
+@{
+    ViewData["Title"] = "New Journal Entry";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Daily Check-in</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Date" class="form-label fw-bold"></label>
+                            <input asp-for="Date" class="form-control" />
+                            <span asp-validation-for="Date" class="text-danger"></span>
+                        </div>
+
+                        <!-- Rating Slider/Input -->
+                        <div class="mb-3">
+                            <label asp-for="OverallRating" class="form-label fw-bold">Skin Feeling (1 = Bad, 10 = Glow!)</label>
+                            <input asp-for="OverallRating" type="range" class="form-range" min="1" max="10" id="ratingRange" oninput="this.nextElementSibling.value = this.value">
+                            <output>5</output> / 10
+                            <span asp-validation-for="OverallRating" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label asp-for="SleepHours" class="form-label fw-bold">Sleep (Hrs)</label>
+                                <input asp-for="SleepHours" class="form-control" type="number" />
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="StressLevel" class="form-label fw-bold">Stress</label>
+                                <select asp-for="StressLevel" asp-items="Html.GetEnumSelectList<StressLevel>()" class="form-select"></select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label fw-bold">Notes</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Breakout on chin? Tried new serum?"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">Save Entry</button>
+                            <a asp-action="Index" class="btn btn-link">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

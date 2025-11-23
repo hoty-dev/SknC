@@ -32,11 +32,25 @@
                             <span class="badge bg-secondary mb-3">@item.Type</span>
                             
                             <p class="card-text text-muted">
-                                <!-- Placeholder for step count logic later -->
-                                0 Steps configured
+                                @(item.Steps?.Count ?? 0) Steps configured
                             </p>
                             
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-dark">View Details</a>
+                            <hr class="my-4" />
+
+                            <div class="d-flex justify-content-center gap-2">
+                                <!-- View Details Button -->
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-dark">
+                                    ⚙️ Configure
+                                </a>
+
+                                <!-- CHECK-IN BUTTON (Ticket #8) -->
+                                <form asp-action="Execute" asp-route-id="@item.Id" method="post">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Mark as done for today">
+                                        ✅ Do it!
+                                    </button>
+                                </form>
+                            </div>
+
                         </div>
                     </div>
                 </div>

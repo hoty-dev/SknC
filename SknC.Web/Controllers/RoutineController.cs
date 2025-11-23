@@ -148,5 +148,34 @@ namespace SknC.Web.Controllers
 
             return View("Details", model);
         }
+
+        // POST: /Routine/Execute/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Execute(int id)
+        {
+            int userId = 1; // Hardcoded user
+
+            // 1. Verify the routine exists and belongs to the user
+            var routine = await _context.Routines
+                .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+            if (routine == null) return NotFound();
+
+            // 2. Create the execution record
+            var execution = new RoutineExecution
+            {
+                RoutineId = routine.Id,
+                DateExecuted = DateTime.Now,
+                IsCompleted = true
+            };
+
+            // 3. Save to DB
+            _context.RoutineExecutions.Add(execution);
+            await _context.SaveChangesAsync();
+
+            // 4. Return to list (TODO: Maybe show a success message later)
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

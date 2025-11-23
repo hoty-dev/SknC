@@ -25,15 +25,18 @@ namespace SknC.Web.Infrastructure.Data
         public DbSet<Routine> Routines { get; set; }
         public DbSet<RoutineStep> RoutineSteps { get; set; }
         public DbSet<RoutineExecution> RoutineExecutions { get; set; }
-        
+        public DbSet<JournalEntry> JournalEntries { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure SQLite decimal support
             modelBuilder.Entity<InventoryProduct>()
                 .Property(p => p.PurchasePrice)
                 .HasColumnType("TEXT");
 
+            // Ensure Email is unique
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();

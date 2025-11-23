@@ -1,0 +1,46 @@
+@model IEnumerable<SknC.Web.Core.Entities.JournalEntry>
+
+@{
+    ViewData["Title"] = "Skin Journal";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Skin Journal 📖</h2>
+        <a asp-action="Create" class="btn btn-primary">+ New Entry</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <h4>No entries yet!</h4>
+            <p>Track how your skin feels every day to find patterns.</p>
+            <a asp-action="Create" class="btn btn-outline-primary mt-2">Write First Entry</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="list-group shadow-sm">
+                    @foreach (var item in Model)
+                    {
+                        <div class="list-group-item list-group-item-action p-4 mb-3 border rounded">
+                            <div class="d-flex w-100 justify-content-between mb-2">
+                                <h5 class="mb-1 fw-bold text-primary">@item.Date.ToString("dddd, MMMM dd")</h5>
+                                <span class="badge bg-dark rounded-pill">Rating: @item.OverallRating/10</span>
+                            </div>
+                            
+                            <p class="mb-3 fst-italic text-muted">"@item.Notes"</p>
+                            
+                            <div class="d-flex gap-3 small text-secondary border-top pt-2">
+                                <span>😴 Sleep: <strong>@item.SleepHours hrs</strong></span>
+                                <span>⚡ Stress: <strong>@item.StressLevel</strong></span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

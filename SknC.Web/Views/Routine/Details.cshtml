@@ -1,0 +1,88 @@
+@model SknC.Web.Models.ViewModels.RoutineDetailViewModel
+
+@{
+    ViewData["Title"] = "Routine Details";
+}
+
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+        <h2>@Model.RoutineName</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Routines</a>
+    </div>
+
+    <div class="row">
+        <!-- LEFT COLUMN: The Routine Steps List -->
+        <div class="col-md-7">
+            <h4 class="mb-3 text-muted">Steps Configuration</h4>
+            
+            @if (!Model.Steps.Any())
+            {
+                <div class="alert alert-warning">
+                    This routine has no steps yet. Add products using the form.
+                </div>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var step in Model.Steps)
+                    {
+                        <div class="list-group-item list-group-item-action d-flex gap-3 py-3">
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 40px; height: 40px; font-weight: bold;">
+                                @step.OrderIndex
+                            </div>
+                            <div class="d-flex gap-2 w-100 justify-content-between">
+                                <div>
+                                    <h6 class="mb-0">@step.InventoryProduct?.ProductReference?.Brand</h6>
+                                    <p class="mb-0 opacity-75">@step.InventoryProduct?.ProductReference?.CommercialName</p>
+                                    @if(!string.IsNullOrEmpty(step.SpecialInstructions))
+                                    {
+                                        <small class="text-primary fst-italic">Note: @step.SpecialInstructions</small>
+                                    }
+                                </div>
+                                <small class="opacity-50 text-nowrap">@step.InventoryProduct?.ProductReference?.Category</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- RIGHT COLUMN: Add New Step Form -->
+        <div class="col-md-5">
+            <div class="card bg-light shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Add Product to Routine</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AddStep">
+                        <input type="hidden" asp-for="RoutineId" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="NewStepInventoryId" class="form-label">Select Product</label>
+                            <select asp-for="NewStepInventoryId" asp-items="Model.InventoryList" class="form-select">
+                                <option value="">-- Choose from My Shelf --</option>
+                            </select>
+                            <span asp-validation-for="NewStepInventoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label asp-for="NewStepOrder" class="form-label">Order</label>
+                                <input asp-for="NewStepOrder" class="form-control" />
+                            </div>
+                            <div class="col-8">
+                                <label asp-for="NewStepInstructions" class="form-label">Instructions</label>
+                                <input asp-for="NewStepInstructions" class="form-control" placeholder="e.g. Only on nose" />
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">Add Step</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

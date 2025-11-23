@@ -1,0 +1,46 @@
+@model SknC.Web.Models.ViewModels.CreateRoutineViewModel
+@using SknC.Web.Core.Enums
+
+@{
+    ViewData["Title"] = "New Routine";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Create New Routine</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <!-- Name Input -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold"></label>
+                            <input asp-for="Name" class="form-control" placeholder="e.g. Winter Morning, Gym PM..." />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <!-- Type Dropdown (Enum) -->
+                        <div class="mb-3">
+                            <label asp-for="Type" class="form-label fw-bold"></label>
+                            <select asp-for="Type" asp-items="Html.GetEnumSelectList<RoutineType>()" class="form-select"></select>
+                            <span asp-validation-for="Type" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">Create Routine</button>
+                            <a asp-action="Index" class="btn btn-link text-decoration-none">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

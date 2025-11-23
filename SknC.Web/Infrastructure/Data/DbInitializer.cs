@@ -61,6 +61,18 @@ namespace SknC.Web.Infrastructure.Data
 
             // 4. Add to context and save
             context.ProductReferences.AddRange(products);
+
+            if (!context.Users.Any())
+            {
+                var user = new User
+                {
+                    FullName = "Test User",
+                    Email = "test@sknc.app",
+                    SkinType = SkinType.Combination
+                };
+                context.Users.Add(user);
+            }
+
             context.SaveChanges();
         }
     }

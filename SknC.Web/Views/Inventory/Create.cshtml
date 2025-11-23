@@ -1,0 +1,53 @@
+@model SknC.Web.Models.ViewModels.AddInventoryItemViewModel
+@using SknC.Web.Core.Enums
+
+@{
+    ViewData["Title"] = "Add Product";
+}
+
+<div class="container mt-4">
+    <h2>Add Product to Inventory</h2>
+    <hr />
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="ProductReferenceId" class="form-label"></label>
+                    <select asp-for="ProductReferenceId" asp-items="Model.ProductList" class="form-select">
+                        <option value="">-- Select Product --</option>
+                    </select>
+                    <span asp-validation-for="ProductReferenceId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" asp-items="Html.GetEnumSelectList<ProductStatus>()" class="form-select"></select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PurchasePrice" class="form-label"></label>
+                    <input asp-for="PurchasePrice" class="form-control" placeholder="0.00" />
+                    <span asp-validation-for="PurchasePrice" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PersonalNotes" class="form-label"></label>
+                    <textarea asp-for="PersonalNotes" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="PersonalNotes" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <input type="submit" value="Save Product" class="btn btn-success" />
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

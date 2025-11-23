@@ -9,6 +9,7 @@
 */
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SknC.Web.Core.Entities;
 using SknC.Web.Infrastructure.Data;
@@ -28,11 +29,11 @@ namespace SknC.Web.Controllers
         // GET: /Routine
         public async Task<IActionResult> Index()
         {
-            // TODO: Replace with logged-in user ID
-            int userId = 1;
+            int userId = 1; // TODO: Replace with logged-in user
 
             var routines = await _context.Routines
                 .Where(r => r.UserId == userId)
+                .Include(r => r.Steps)
                 .OrderBy(r => r.Type)
                 .ToListAsync();
 
@@ -52,7 +53,6 @@ namespace SknC.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // TODO: Replace with logged-in user ID
                 int userId = 1;
 
                 var newRoutine = new Routine
@@ -65,10 +65,88 @@ namespace SknC.Web.Controllers
                 _context.Routines.Add(newRoutine);
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = newRoutine.Id });
+            }
+            return View(model);
+        }
+        // GET: /Routine/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            int userId = 1;
+
+            var routine = await _context.Routines
+                .Include(r => r.Steps)
+                    .ThenInclude(s => s.InventoryProduct)
+                        .ThenInclude(ip => ip.ProductReference)
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (routine == null) return NotFound();
+
+            var viewModel = new RoutineDetailViewModel
+            {
+                RoutineId = routine.Id,
+                RoutineName = routine.Name,
+                Steps = routine.Steps.OrderBy(s => s.OrderIndex).ToList(),
+                NewStepOrder = routine.Steps.Count + 1,
+                
+                InventoryList = _context.InventoryProducts
+                    .Where(i => i.UserId == userId && i.Status != Core.Enums.ProductStatus.Discarded)
+                    .Include(i => i.ProductReference)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.Id.ToString(),
+                        Text = $"{p.ProductReference.Brand} - {p.ProductReference.CommercialName}"
+                    })
+                    .ToList()
+            };
+
+            return View(viewModel);
+        }
+        // POST: /Routine/AddStep
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddStep(RoutineDetailViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var newStep = new RoutineStep
+                {
+                    RoutineId = model.RoutineId,
+                    InventoryProductId = model.NewStepInventoryId,
+                    OrderIndex = model.NewStepOrder,
+                    SpecialInstructions = model.NewStepInstructions
+                };
+
+                _context.RoutineSteps.Add(newStep);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Details), new { id = model.RoutineId });
             }
 
-            return View(model);
+            // Reload data if validation fails
+             var routine = await _context.Routines
+                .Include(r => r.Steps)
+                    .ThenInclude(s => s.InventoryProduct)
+                        .ThenInclude(ip => ip.ProductReference)
+                .FirstOrDefaultAsync(m => m.Id == model.RoutineId);
+            
+            model.RoutineName = routine?.Name ?? "Error";
+            model.Steps = routine?.Steps.OrderBy(s => s.OrderIndex).ToList() ?? new List<RoutineStep>();
+             
+             int userId = 1;
+             model.InventoryList = _context.InventoryProducts
+                .Where(i => i.UserId == userId)
+                .Include(i => i.ProductReference)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = $"{p.ProductReference.Brand} - {p.ProductReference.CommercialName}"
+                })
+                .ToList();
+
+            return View("Details", model);
         }
     }
 }

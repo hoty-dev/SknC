@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 23/11/2025
+ * Date: 24/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -23,7 +23,7 @@ namespace SknC.Web.Core.Entities
         public int UserId { get; set; }
         public User? User { get; set; }
 
-        // When? (Date only, time doesn't matter much for daily summary)
+        // When?
         [Required]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; } = DateTime.Today;
@@ -41,6 +41,8 @@ namespace SknC.Web.Core.Entities
         [StringLength(1000)]
         public string? Notes { get; set; }
 
-        // Note: Photo path will be added in Ticket #11
+        // Optional photo attachment
+        [StringLength(255)]
+        public string? PhotoPath { get; set; } // Stores relative path: "/uploads/journal/xyz.jpg"
     }
 }

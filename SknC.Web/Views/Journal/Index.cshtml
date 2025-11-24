@@ -31,7 +31,19 @@
                                 <span class="badge bg-dark rounded-pill">Rating: @item.OverallRating/10</span>
                             </div>
                             
-                            <p class="mb-3 fst-italic text-muted">"@item.Notes"</p>
+                            <!-- PHOTO DISPLAY LOGIC -->
+                            @if (!string.IsNullOrEmpty(item.PhotoPath))
+                            {
+                                <div class="mb-3 text-center bg-light p-2 rounded">
+                                    <!-- La clase img-fluid hace que se adapte al ancho -->
+                                    <img src="@item.PhotoPath" alt="Skin progress photo" class="img-fluid rounded border" style="max-height: 400px; object-fit: cover;" />
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(item.Notes))
+                            {
+                                <p class="mb-3 fst-italic text-muted">"@item.Notes"</p>
+                            }
                             
                             <div class="d-flex gap-3 small text-secondary border-top pt-2">
                                 <span>😴 Sleep: <strong>@item.SleepHours hrs</strong></span>

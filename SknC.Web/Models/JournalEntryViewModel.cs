@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 23/11/2025
+ * Date: 24/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -37,5 +37,8 @@ namespace SknC.Web.Models.ViewModels
         [StringLength(1000)]
         [Display(Name = "Daily Notes")]
         public string? Notes { get; set; }
+
+        [Display(Name = "Progress Photo (Optional)")]
+        public IFormFile? Photo { get; set; }
     }
 }

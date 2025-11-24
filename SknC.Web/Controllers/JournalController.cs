@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 23/11/2025
+ * Date: 24/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -19,16 +19,19 @@ namespace SknC.Web.Controllers
     public class JournalController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment; // Necessary to get the server folder path
 
-        public JournalController(AppDbContext context)
+        public JournalController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: /Journal
         public async Task<IActionResult> Index()
         {
-            int userId = 1; // Hardcoded user
+            // TODO: Replace with logged-in user
+            int userId = 1;
 
             var entries = await _context.JournalEntries
                 .Where(j => j.UserId == userId)
@@ -56,9 +59,31 @@ namespace SknC.Web.Controllers
             if (ModelState.IsValid)
             {
                 int userId = 1;
+                string? uniqueFileName = null;
 
-                // Check if entry already exists for this date? (Optional logic)
-                
+                // --- FILE UPLOAD LOGIC ---
+                if (model.Photo != null)
+                {
+                    // 1. Define upload folder path (wwwroot/uploads/journal)
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "journal");
+                    
+                    // 2. Create directory if it doesn't exist
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    // 3. Generate unique filename to prevent overwriting
+                    // Format: GUID + Original Filename (e.g. "a1b2c3d4_myselfie.jpg")
+                    uniqueFileName = Guid.NewGuid().ToString() + "_" + model.Photo.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    // 4. Save file to disk
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.Photo.CopyToAsync(fileStream);
+                    }
+                }
+                // -------------------------
+
                 var entry = new JournalEntry
                 {
                     UserId = userId,
@@ -66,7 +91,9 @@ namespace SknC.Web.Controllers
                     OverallRating = model.OverallRating,
                     SleepHours = model.SleepHours,
                     StressLevel = model.StressLevel,
-                    Notes = model.Notes
+                    Notes = model.Notes,
+                    // Store the relative URL path in the database, NOT the physical path
+                    PhotoPath = uniqueFileName != null ? "/uploads/journal/" + uniqueFileName : null
                 };
 
                 _context.JournalEntries.Add(entry);

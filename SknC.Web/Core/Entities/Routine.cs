@@ -24,7 +24,7 @@ namespace SknC.Web.Core.Entities
 
         public RoutineType Type { get; set; }
 
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public User? User { get; set; }
 
         public ICollection<RoutineStep> Steps { get; set; } = new List<RoutineStep>();

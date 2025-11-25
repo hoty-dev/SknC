@@ -9,33 +9,42 @@
 */
 
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization; // Required for Authorize
+using Microsoft.AspNetCore.Identity; // Required for UserManager
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SknC.Web.Core.Entities;
 using SknC.Web.Infrastructure.Data;
 using SknC.Web.Models;
 using SknC.Web.Models.ViewModels;
 
 namespace SknC.Web.Controllers
 {
+    [Authorize] // Critical: Protect the Dashboard
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly AppDbContext _context;
+        private readonly UserManager<User> _userManager; // Inject User Manager
 
-        public HomeController(ILogger<HomeController> logger, AppDbContext context)
+        public HomeController(ILogger<HomeController> logger, AppDbContext context, UserManager<User> userManager)
         {
             _logger = logger;
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
         {
-            int userId = 1; // Hardcoded user for MVP
+            // Get current logged-in user ID
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
             var today = DateTime.Today;
 
             // 1. Inventory Stats
             var products = await _context.InventoryProducts
-                .Where(i => i.UserId == userId)
+                .Where(i => i.UserId == userId) // Filter by String ID
                 .Include(i => i.ProductReference)
                 .ToListAsync();
 
@@ -47,7 +56,7 @@ namespace SknC.Web.Controllers
                 .Where(e => e.Routine != null && e.Routine.UserId == userId && e.DateExecuted >= today)
                 .CountAsync();
 
-            // 3. CHART DATA LOGIC (Ticket #12)
+            // 3. CHART DATA LOGIC
             // Fetch last 14 entries to show a 2-week trend
             var journalEntries = await _context.JournalEntries
                 .Where(j => j.UserId == userId)
@@ -56,7 +65,6 @@ namespace SknC.Web.Controllers
                 .ToListAsync();
 
             // Transform data for the Chart
-            // We format the date to show only "Day/Month" (e.g., "24/11")
             var labels = journalEntries.Select(j => j.Date.ToString("dd/MM")).ToArray();
             var values = journalEntries.Select(j => j.OverallRating).ToArray();
 
@@ -74,7 +82,7 @@ namespace SknC.Web.Controllers
                     .Take(5)
                     .ToList(),
                 
-                // Chart Data assignment
+                // Chart Data
                 ChartLabels = labels,
                 ChartValues = values
             };

@@ -3,33 +3,25 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 20/11/2025
+ * Date: 25/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
 
-using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity; // Importante
 using SknC.Web.Core.Enums;
 
 namespace SknC.Web.Core.Entities
 {
-    public class User
+    // Inherits from IdentityUser to include ASP.NET Identity functionality
+    public class User : IdentityUser
     {
-        [Key]
-        public int Id { get; set; }
-
-        [Required]
-        [StringLength(100)]
+        // Personalized properties that Identity does not include by default
         public string FullName { get; set; } = string.Empty;
 
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        // Profile Data
         public SkinType SkinType { get; set; }
         
-        // Navigation Properties (Relationships)
+        // Navigation Properties
         public ICollection<InventoryProduct> Inventory { get; set; } = new List<InventoryProduct>();
         public ICollection<Routine> Routines { get; set; } = new List<Routine>();
     }

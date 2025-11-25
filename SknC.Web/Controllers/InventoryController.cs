@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 23/11/2025
+ * Date: 25/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -14,28 +14,35 @@ using Microsoft.EntityFrameworkCore;
 using SknC.Web.Core.Entities;
 using SknC.Web.Infrastructure.Data;
 using SknC.Web.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization; // Required to protect the controller
+using Microsoft.AspNetCore.Identity; // Required to get current user
 
 namespace SknC.Web.Controllers
 {
+    [Authorize] // Critical: Only logged-in users can access Inventory
     public class InventoryController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<User> _userManager; // We inject the User Manager
 
-        public InventoryController(AppDbContext context)
+        public InventoryController(AppDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: /Inventory
         public async Task<IActionResult> Index()
         {
-            // TODO: Replace with current logged-in user ID (Authentication logic pending)
-            int userId = 1;
+            // Get the current logged-in User ID (It's a string/GUID now)
+            var userId = _userManager.GetUserId(User);
 
-            // Retrieve user's inventory including product details
+            if (userId == null) return NotFound("User not found");
+
+            // Fetch user's inventory including the product details (Reference)
             var inventory = await _context.InventoryProducts
                 .Include(i => i.ProductReference)
-                .Where(i => i.UserId == userId)
+                .Where(i => i.UserId == userId) // EF Core handles string comparison automatically
                 .OrderByDescending(i => i.DateOpened)
                 .ToListAsync();
 
@@ -47,7 +54,7 @@ namespace SknC.Web.Controllers
         {
             var viewModel = new AddInventoryItemViewModel
             {
-                // Populate the dropdown list with products from the global catalog
+                // Load the dropdown list from the global catalog
                 ProductList = _context.ProductReferences
                     .Select(p => new SelectListItem
                     {
@@ -67,8 +74,10 @@ namespace SknC.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // TODO: Replace with current logged-in user ID
-                int userId = 1;
+                // Get current User ID
+                var userId = _userManager.GetUserId(User);
+                
+                if (userId == null) return Challenge(); // Force login if session is lost
 
                 // Map ViewModel to Entity
                 var newItem = new InventoryProduct
@@ -78,7 +87,6 @@ namespace SknC.Web.Controllers
                     Status = model.Status,
                     PurchasePrice = model.PurchasePrice,
                     PersonalNotes = model.PersonalNotes,
-                    // If status is "In Use", automatically set the open date to today
                     DateOpened = model.Status == Core.Enums.ProductStatus.InUse ? DateTime.Now : null
                 };
 
@@ -88,7 +96,7 @@ namespace SknC.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // If validation fails, reload the dropdown list so the form is not empty
+            // If validation fails, reload the dropdown
             model.ProductList = _context.ProductReferences
                 .Select(p => new SelectListItem
                 {

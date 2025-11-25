@@ -20,7 +20,7 @@ namespace SknC.Web.Core.Entities
 
         // Relationship: Who wrote this entry?
         [Required]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public User? User { get; set; }
 
         // When?

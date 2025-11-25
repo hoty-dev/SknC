@@ -8,17 +8,19 @@
  * =========================================================================================
 */
 
-using Microsoft.AspNetCore.Identity; // Importante
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 using SknC.Web.Core.Enums;
 
 namespace SknC.Web.Core.Entities
 {
-    // Inherits from IdentityUser to include ASP.NET Identity functionality
-    public class User : IdentityUser
-    {
-        // Personalized properties that Identity does not include by default
+    public class User : IdentityUser 
+    {        
+        [Required]
+        [StringLength(100)]
         public string FullName { get; set; } = string.Empty;
 
+        // Profile Data
         public SkinType SkinType { get; set; }
         
         // Navigation Properties

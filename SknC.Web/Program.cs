@@ -23,16 +23,15 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        builder.Services.AddRazorPages(); // 1. IMPORTANTE: Necesario para las pantallas de Identity
 
-        // 1. Configure DbContext with SQLite
+        // Configure DbContext
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        // 2. CONFIGURE IDENTITY (Security)
-        // Link Identity with our User entity and DbContext
+        // Configure Identity
         builder.Services.AddDefaultIdentity<User>(options => 
         {
-            // Relaxed password requirements for development
             options.SignIn.RequireConfirmedAccount = false; 
             options.Password.RequireDigit = false;
             options.Password.RequiredLength = 4;
@@ -40,21 +39,19 @@ public class Program
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
         })
+        .AddDefaultUI() // 2. IMPORTANTE: Asegura que las rutas de login por defecto funcionen
         .AddEntityFrameworkStores<AppDbContext>();
 
         var app = builder.Build();
 
-        // --- SEEDER START (Updated for Identity) ---
+        // --- SEEDER ---
         using (var scope = app.Services.CreateScope())
         {
             var services = scope.ServiceProvider;
             try
             {
                 var context = services.GetRequiredService<AppDbContext>();
-                // We request the UserManager to securely create the test user
                 var userManager = services.GetRequiredService<UserManager<User>>();
-                
-                // Async call to initialize DB
                 await DbInitializer.Initialize(context, userManager);
             }
             catch (Exception ex)
@@ -63,33 +60,28 @@ public class Program
                 logger.LogError(ex, "An error occurred while seeding the database.");
             }
         }
-        // --- SEEDER END ---
 
-        // Configure the HTTP request pipeline.
+        // Configure Pipeline
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios.
             app.UseHsts();
         }
 
         app.UseHttpsRedirection();
         app.UseRouting();
 
-        // 3. SECURITY MIDDLEWARES (Order matters)
-        app.UseAuthentication(); // Identity: Who are you?
-        app.UseAuthorization();  // Identity: What can you do?
+        app.UseAuthentication(); // 3. ¿Quién sos?
+        app.UseAuthorization();  // 4. ¿Qué podés hacer?
 
         app.MapStaticAssets();
         
-        // Default MVC Route
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}")
             .WithStaticAssets();
         
-        // Required for Identity UI (Login/Register pages are Razor Pages)
-        app.MapRazorPages(); 
+        app.MapRazorPages(); // 5. Mapear las rutas de login
 
         await app.RunAsync();
     }

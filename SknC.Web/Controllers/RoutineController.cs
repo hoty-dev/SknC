@@ -8,8 +8,8 @@
  * =========================================================================================
 */
 
-using Microsoft.AspNetCore.Authorization; // Required for Authorize
-using Microsoft.AspNetCore.Identity; // Required for UserManager
+using Microsoft.AspNetCore.Authorization; // Necesary for [Authorize]
+using Microsoft.AspNetCore.Identity; // Necesary for UserManager
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,12 +19,11 @@ using SknC.Web.Models.ViewModels;
 
 namespace SknC.Web.Controllers
 {
-    [Authorize] // Critical: Protect routines
+    [Authorize] // Protects the entire controller
     public class RoutineController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<User> _userManager; // Inject User Manager
-
+        private readonly UserManager<User> _userManager; // Inject UserManager
         public RoutineController(AppDbContext context, UserManager<User> userManager)
         {
             _context = context;
@@ -35,7 +34,7 @@ namespace SknC.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User);
-            if (userId == null) return Challenge();
+            if (userId == null) return Challenge(); // If no user, force login
 
             var routines = await _context.Routines
                 .Where(r => r.UserId == userId)
@@ -168,7 +167,6 @@ namespace SknC.Web.Controllers
             var userId = _userManager.GetUserId(User);
             if (userId == null) return Challenge();
 
-            // Verify routine ownership
             var routine = await _context.Routines
                 .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 

@@ -17,12 +17,12 @@ namespace SknC.Web.Infrastructure.Data
 {
     public static class DbInitializer
     {
-        // Change to Async and request UserManager
         public static async Task Initialize(AppDbContext context, UserManager<User> userManager)
         {
+            // Apply pending migrations automatically
             context.Database.Migrate();
 
-            // 1. Seed Products
+            // 1. Seed Products (if not exists)
             if (!context.ProductReferences.Any())
             {
                 var products = new ProductReference[]
@@ -36,20 +36,20 @@ namespace SknC.Web.Infrastructure.Data
                 await context.SaveChangesAsync();
             }
 
-            // 2. Seed Default User (USING IDENTITY)
-            // Verify if exists any user, if not, creates test user
+            // 2. Seed Default User (using Identity)
+            // Check if there are any users using the UserManager from Identity
             if (!userManager.Users.Any())
             {
                 var user = new User
                 {
-                    UserName = "test@sknc.app", // Identity requires UserName
+                    UserName = "test@sknc.app", // Identity requires explicit UserName
                     Email = "test@sknc.app",
                     FullName = "Test User",
                     SkinType = SkinType.Combination,
                     EmailConfirmed = true
                 };
 
-                // Create the user with encrypted password "Pa$$w0rd"
+                // Create the user with a secure default password
                 await userManager.CreateAsync(user, "Pa$$w0rd");
             }
         }

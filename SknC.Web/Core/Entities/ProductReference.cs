@@ -34,8 +34,6 @@ namespace SknC.Web.Core.Entities
         public string? Barcode { get; set; }
 
         public ProductCategory Category { get; set; }
-
-        // We will link Ingredients later
-        // public List<Ingredient> Ingredients { get; set; } = new();
+        public ICollection<ProductIngredient> ProductIngredients { get; set; } = new List<ProductIngredient>();
     }
 }

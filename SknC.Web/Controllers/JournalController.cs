@@ -8,8 +8,8 @@
  * =========================================================================================
 */
 
-using Microsoft.AspNetCore.Authorization; // Required for Authorize
-using Microsoft.AspNetCore.Identity; // Required for UserManager
+using Microsoft.AspNetCore.Authorization; // Necesary for [Authorize]
+using Microsoft.AspNetCore.Identity; // Necesary for UserManager
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SknC.Web.Core.Entities;
@@ -18,11 +18,11 @@ using SknC.Web.Models.ViewModels;
 
 namespace SknC.Web.Controllers
 {
-    [Authorize] // Critical: Protect Journal
+    [Authorize] // Protects access to journal
     public class JournalController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<User> _userManager; // Inject User Manager
+        private readonly UserManager<User> _userManager; // Inject UserManager
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public JournalController(AppDbContext context, UserManager<User> userManager, IWebHostEnvironment webHostEnvironment)
@@ -36,7 +36,8 @@ namespace SknC.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User);
-            if (userId == null) return Challenge();
+            
+            if (userId == null) return Challenge(); // If no session, force login
 
             var entries = await _context.JournalEntries
                 .Where(j => j.UserId == userId)

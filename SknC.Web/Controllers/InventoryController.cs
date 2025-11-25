@@ -8,6 +8,8 @@
  * =========================================================================================
 */
 
+using Microsoft.AspNetCore.Authorization; // Necesary for [Authorize]
+using Microsoft.AspNetCore.Identity; // Necesary for UserManager
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,11 +21,11 @@ using Microsoft.AspNetCore.Identity; // Required to get current user
 
 namespace SknC.Web.Controllers
 {
-    [Authorize] // Critical: Only logged-in users can access Inventory
+    [Authorize] // Protects access to the inventory
     public class InventoryController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<User> _userManager; // We inject the User Manager
+        private readonly UserManager<User> _userManager; // Inject UserManager
 
         public InventoryController(AppDbContext context, UserManager<User> userManager)
         {
@@ -34,8 +36,9 @@ namespace SknC.Web.Controllers
         // GET: /Inventory
         public async Task<IActionResult> Index()
         {
-            // Get the current logged-in User ID (It's a string/GUID now)
             var userId = _userManager.GetUserId(User);
+            
+            if (userId == null) return Challenge(); // If no session, force login
 
             if (userId == null) return NotFound("User not found");
 
@@ -74,10 +77,8 @@ namespace SknC.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Get current User ID
                 var userId = _userManager.GetUserId(User);
-                
-                if (userId == null) return Challenge(); // Force login if session is lost
+                if (userId == null) return Challenge();
 
                 // Map ViewModel to Entity
                 var newItem = new InventoryProduct

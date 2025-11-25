@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 20/11/2025
+ * Date: 25/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -25,7 +25,7 @@ namespace SknC.Web.Core.Entities
 
         // Relationships
         [Required]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public User? User { get; set; }
 
         [Required]

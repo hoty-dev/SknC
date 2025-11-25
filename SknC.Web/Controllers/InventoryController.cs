@@ -3,11 +3,13 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 23/11/2025
+ * Date: 25/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
 
+using Microsoft.AspNetCore.Authorization; // Necesary for [Authorize]
+using Microsoft.AspNetCore.Identity; // Necesary for UserManager
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -17,20 +19,24 @@ using SknC.Web.Models.ViewModels;
 
 namespace SknC.Web.Controllers
 {
+    [Authorize] // Protects access to the inventory
     public class InventoryController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<User> _userManager; // Inject UserManager
 
-        public InventoryController(AppDbContext context)
+        public InventoryController(AppDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: /Inventory
         public async Task<IActionResult> Index()
         {
-            // TODO: Replace with current logged-in user ID (Authentication logic pending)
-            int userId = 1;
+            var userId = _userManager.GetUserId(User);
+            
+            if (userId == null) return Challenge(); // If no session, force login
 
             // Retrieve user's inventory including product details
             var inventory = await _context.InventoryProducts
@@ -67,8 +73,8 @@ namespace SknC.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // TODO: Replace with current logged-in user ID
-                int userId = 1;
+                var userId = _userManager.GetUserId(User);
+                if (userId == null) return Challenge();
 
                 // Map ViewModel to Entity
                 var newItem = new InventoryProduct

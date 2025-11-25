@@ -12,7 +12,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SknC.Web.Core.Enums;
-using SknC.Web.Controllers;
 
 namespace SknC.Web.Models.ViewModels
 {

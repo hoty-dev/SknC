@@ -43,7 +43,7 @@ namespace SknC.Web.Infrastructure.Data
                 .Property(p => p.PurchasePrice)
                 .HasColumnType("TEXT");
 
-            // Ensure Email is unique
+            // Ensure Email is unique (redundant with Identity but good practice)
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();

@@ -23,7 +23,7 @@ namespace SknC.Web.Core.Entities
         // Profile Data
         public SkinType SkinType { get; set; }
         
-        // Navigation Properties (Relationships)
+        // Navigation Properties
         public ICollection<InventoryProduct> Inventory { get; set; } = new List<InventoryProduct>();
         public ICollection<Routine> Routines { get; set; } = new List<Routine>();
     }

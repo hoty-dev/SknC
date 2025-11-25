@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 23/11/2025
+ * Date: 25/11/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -22,7 +22,6 @@ namespace SknC.Web.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly AppDbContext _context;
 
-        // Inject Database Context
         public HomeController(ILogger<HomeController> logger, AppDbContext context)
         {
             _logger = logger;
@@ -34,13 +33,13 @@ namespace SknC.Web.Controllers
             int userId = 1; // Hardcoded user for MVP
             var today = DateTime.Today;
 
-            // 1. Fetch Inventory Stats
+            // 1. Inventory Stats
             var products = await _context.InventoryProducts
                 .Where(i => i.UserId == userId)
                 .Include(i => i.ProductReference)
                 .ToListAsync();
 
-            // 2. Fetch Routine Stats
+            // 2. Routine Stats
             var totalRoutines = await _context.Routines
                 .CountAsync(r => r.UserId == userId);
 
@@ -48,18 +47,36 @@ namespace SknC.Web.Controllers
                 .Where(e => e.Routine != null && e.Routine.UserId == userId && e.DateExecuted >= today)
                 .CountAsync();
 
-            // 3. Build ViewModel
+            // 3. CHART DATA LOGIC (Ticket #12)
+            // Fetch last 14 entries to show a 2-week trend
+            var journalEntries = await _context.JournalEntries
+                .Where(j => j.UserId == userId)
+                .OrderBy(j => j.Date)
+                .Take(14) 
+                .ToListAsync();
+
+            // Transform data for the Chart
+            // We format the date to show only "Day/Month" (e.g., "24/11")
+            var labels = journalEntries.Select(j => j.Date.ToString("dd/MM")).ToArray();
+            var values = journalEntries.Select(j => j.OverallRating).ToArray();
+
+            // 4. Build ViewModel
             var model = new DashboardViewModel
             {
                 TotalProducts = products.Count,
                 ActiveProducts = products.Count(p => p.Status == Core.Enums.ProductStatus.InUse),
                 TotalRoutines = totalRoutines,
                 CompletedToday = executionsToday,
-                // Simple logic: expiring in next 30 days based on PAO
+                
+                // Expiration Logic
                 ExpiringSoon = products
                     .Where(p => p.Status == Core.Enums.ProductStatus.InUse && p.IsExpired())
                     .Take(5)
-                    .ToList()
+                    .ToList(),
+                
+                // Chart Data assignment
+                ChartLabels = labels,
+                ChartValues = values
             };
 
             return View(model);

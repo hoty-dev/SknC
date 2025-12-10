@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 25/11/2025
+ * Date: 10/12/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -19,37 +19,55 @@ namespace SknC.Web.Infrastructure.Data
     {
         public static async Task Initialize(AppDbContext context, UserManager<User> userManager)
         {
-            // Apply pending migrations automatically
             context.Database.Migrate();
 
-            // 1. Seed Products (if not exists)
-            if (!context.ProductReferences.Any())
+            // 1. INGREDIENTES (Química Básica)
+            if (!context.Ingredients.Any())
             {
-                var products = new ProductReference[]
+                var ingredients = new Ingredient[]
                 {
-                    new ProductReference { Brand = "CeraVe", CommercialName = "Foaming Facial Cleanser", Category = ProductCategory.Cleanser, Barcode = "3606000537484" },
-                    new ProductReference { Brand = "La Roche-Posay", CommercialName = "Anthelios Melt-in Milk Sunscreen SPF 60", Category = ProductCategory.Sunscreen, Barcode = "3337875583626" },
-                    new ProductReference { Brand = "The Ordinary", CommercialName = "Niacinamide 10% + Zinc 1%", Category = ProductCategory.Serum, Barcode = "769915190311" },
-                    new ProductReference { Brand = "Neutrogena", CommercialName = "Hydro Boost Water Gel", Category = ProductCategory.Moisturizer, Barcode = "070501110478" }
+                    new Ingredient { InciName = "Retinol", CommonName = "Vitamin A", Function = IngredientFunction.Retinoid, Description = "Anti-aging powerhouse." },
+                    new Ingredient { InciName = "Glycolic Acid", CommonName = "AHA", Function = IngredientFunction.Exfoliant, Description = "Chemical exfoliant." },
+                    new Ingredient { InciName = "Ascorbic Acid", CommonName = "Vitamin C", Function = IngredientFunction.Antioxidant, Description = "Brightening agent." },
+                    new Ingredient { InciName = "Niacinamide", CommonName = "Vitamin B3", Function = IngredientFunction.Active, Description = "Barrier repair." }
                 };
-                context.ProductReferences.AddRange(products);
+                context.Ingredients.AddRange(ingredients);
                 await context.SaveChangesAsync();
             }
 
-            // 2. Seed Default User (using Identity)
-            // Check if there are any users using the UserManager from Identity
+            // 2. PRODUCTOS (Catálogo)
+            if (!context.ProductReferences.Any())
+            {
+                var retinolSerum = new ProductReference { Brand = "The Ordinary", CommercialName = "Retinol 1% in Squalane", Category = ProductCategory.Serum, Barcode = "111" };
+                var glycolicToner = new ProductReference { Brand = "The Ordinary", CommercialName = "Glycolic Acid 7% Solution", Category = ProductCategory.Toner, Barcode = "222" };
+                var vitCSerum = new ProductReference { Brand = "La Roche-Posay", CommercialName = "Vitamin C10 Serum", Category = ProductCategory.Serum, Barcode = "333" };
+                var moisturizer = new ProductReference { Brand = "CeraVe", CommercialName = "Moisturizing Cream", Category = ProductCategory.Moisturizer, Barcode = "444" };
+
+                context.ProductReferences.AddRange(retinolSerum, glycolicToner, vitCSerum, moisturizer);
+                await context.SaveChangesAsync();
+
+                // 3. VINCULAR (La Mezcla) - Obtenemos IDs generados
+                // Retinol Clash: Retinol + Exfoliante es una mezcla fuerte
+                var retinol = await context.Ingredients.FirstAsync(i => i.InciName == "Retinol");
+                var glycolic = await context.Ingredients.FirstAsync(i => i.InciName == "Glycolic Acid");
+                
+                context.ProductIngredients.Add(new ProductIngredient { ProductReferenceId = retinolSerum.Id, IngredientId = retinol.Id, Concentration = "1%" });
+                context.ProductIngredients.Add(new ProductIngredient { ProductReferenceId = glycolicToner.Id, IngredientId = glycolic.Id, Concentration = "7%" });
+                
+                await context.SaveChangesAsync();
+            }
+
+            // 4. USUARIO DE PRUEBA
             if (!userManager.Users.Any())
             {
                 var user = new User
                 {
-                    UserName = "test@sknc.app", // Identity requires explicit UserName
+                    UserName = "test@sknc.app",
                     Email = "test@sknc.app",
                     FullName = "Test User",
                     SkinType = SkinType.Combination,
                     EmailConfirmed = true
                 };
-
-                // Create the user with a secure default password
                 await userManager.CreateAsync(user, "Pa$$w0rd");
             }
         }

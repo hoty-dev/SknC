@@ -11,7 +11,7 @@ using SknC.Web.Infrastructure.Data;
 namespace SknC.Web.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251125200801_InitialIdentitySchema")]
+    [Migration("20251210201726_InitialIdentitySchema")]
     partial class InitialIdentitySchema
     {
         /// <inheritdoc />
@@ -152,6 +152,33 @@ namespace SknC.Web.Infrastructure.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SknC.Web.Core.Entities.Ingredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CommonName")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Function")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("InciName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Ingredients");
+                });
+
             modelBuilder.Entity("SknC.Web.Core.Entities.InventoryProduct", b =>
                 {
                     b.Property<int>("Id")
@@ -231,6 +258,25 @@ namespace SknC.Web.Infrastructure.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("JournalEntries");
+                });
+
+            modelBuilder.Entity("SknC.Web.Core.Entities.ProductIngredient", b =>
+                {
+                    b.Property<int>("ProductReferenceId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IngredientId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Concentration")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ProductReferenceId", "IngredientId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.ToTable("ProductIngredients");
                 });
 
             modelBuilder.Entity("SknC.Web.Core.Entities.ProductReference", b =>
@@ -361,6 +407,7 @@ namespace SknC.Web.Infrastructure.Data.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
@@ -495,6 +542,25 @@ namespace SknC.Web.Infrastructure.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SknC.Web.Core.Entities.ProductIngredient", b =>
+                {
+                    b.HasOne("SknC.Web.Core.Entities.Ingredient", "Ingredient")
+                        .WithMany("ProductIngredients")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SknC.Web.Core.Entities.ProductReference", "ProductReference")
+                        .WithMany("ProductIngredients")
+                        .HasForeignKey("ProductReferenceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("ProductReference");
+                });
+
             modelBuilder.Entity("SknC.Web.Core.Entities.Routine", b =>
                 {
                     b.HasOne("SknC.Web.Core.Entities.User", "User")
@@ -534,6 +600,16 @@ namespace SknC.Web.Infrastructure.Data.Migrations
                     b.Navigation("InventoryProduct");
 
                     b.Navigation("Routine");
+                });
+
+            modelBuilder.Entity("SknC.Web.Core.Entities.Ingredient", b =>
+                {
+                    b.Navigation("ProductIngredients");
+                });
+
+            modelBuilder.Entity("SknC.Web.Core.Entities.ProductReference", b =>
+                {
+                    b.Navigation("ProductIngredients");
                 });
 
             modelBuilder.Entity("SknC.Web.Core.Entities.Routine", b =>

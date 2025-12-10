@@ -19,7 +19,7 @@ using SknC.Web.Models.ViewModels;
 
 namespace SknC.Web.Controllers
 {
-    [Authorize] // Protege el acceso al inventario
+    [Authorize]
     public class InventoryController : Controller
     {
         private readonly AppDbContext _context;
@@ -48,10 +48,11 @@ namespace SknC.Web.Controllers
         }
 
         // GET: /Inventory/Create
-        public IActionResult Create()
+        public IActionResult Create(int? productReferenceId)
         {
             var viewModel = new AddInventoryItemViewModel
             {
+                ProductReferenceId = productReferenceId ?? 0,
                 ProductList = _context.ProductReferences
                     .Select(p => new SelectListItem
                     {
@@ -99,6 +100,62 @@ namespace SknC.Web.Controllers
                 .ToList();
 
             return View(model);
+        }
+
+        // GET: /Inventory/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Challenge();
+
+            var inventoryItem = await _context.InventoryProducts
+                .Include(i => i.ProductReference)
+                    .ThenInclude(pr => pr.ProductIngredients)
+                        .ThenInclude(pi => pi.Ingredient)
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (inventoryItem == null) return NotFound();
+
+            return View(inventoryItem);
+        }
+
+        // GET: /Inventory/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Challenge();
+
+            var inventoryItem = await _context.InventoryProducts
+                .Include(i => i.ProductReference)
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (inventoryItem == null) return NotFound();
+
+            return View(inventoryItem);
+        }
+
+        // POST: /Inventory/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId == null) return Challenge();
+
+            var inventoryItem = await _context.InventoryProducts
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (inventoryItem != null)
+            {
+                _context.InventoryProducts.Remove(inventoryItem);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

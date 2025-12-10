@@ -5,45 +5,63 @@
     ViewData["Title"] = "Add Product";
 }
 
-<div class="container mt-4">
-    <h2>Add Product to Inventory</h2>
-    <hr />
-    <div class="row">
+<div class="container mt-5">
+    <div class="row justify-content-center">
         <div class="col-md-6">
-            <form asp-action="Create">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                <div class="mb-3">
-                    <label asp-for="ProductReferenceId" class="form-label"></label>
-                    <select asp-for="ProductReferenceId" asp-items="Model.ProductList" class="form-select">
-                        <option value="">-- Select Product --</option>
-                    </select>
-                    <span asp-validation-for="ProductReferenceId" class="text-danger"></span>
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Add New Product</h4>
                 </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <div class="mb-3">
-                    <label asp-for="Status" class="form-label"></label>
-                    <select asp-for="Status" asp-items="Html.GetEnumSelectList<ProductStatus>()" class="form-select"></select>
-                    <span asp-validation-for="Status" class="text-danger"></span>
-                </div>
+                        <!-- Product Selection Dropdown -->
+                        <!-- If ProductReferenceId is set in the Model, this dropdown will auto-select it -->
+                        <div class="mb-3">
+                            <label asp-for="ProductReferenceId" class="form-label fw-bold"></label>
+                            <select asp-for="ProductReferenceId" asp-items="Model.ProductList" class="form-select">
+                                <option value="">-- Choose from Catalog --</option>
+                            </select>
+                            <span asp-validation-for="ProductReferenceId" class="text-danger"></span>
+                            <div class="form-text">
+                                Can't find it? <a asp-controller="Product" asp-action="Create">Add to Catalog first</a>.
+                            </div>
+                        </div>
 
-                <div class="mb-3">
-                    <label asp-for="PurchasePrice" class="form-label"></label>
-                    <input asp-for="PurchasePrice" class="form-control" placeholder="0.00" />
-                    <span asp-validation-for="PurchasePrice" class="text-danger"></span>
-                </div>
+                        <!-- Status Enum Dropdown -->
+                        <div class="mb-3">
+                            <label asp-for="Status" class="form-label fw-bold"></label>
+                            <select asp-for="Status" asp-items="Html.GetEnumSelectList<ProductStatus>()" class="form-select"></select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
 
-                <div class="mb-3">
-                    <label asp-for="PersonalNotes" class="form-label"></label>
-                    <textarea asp-for="PersonalNotes" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="PersonalNotes" class="text-danger"></span>
-                </div>
+                        <!-- Purchase Price -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PurchasePrice" class="form-label">Price Paid</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="PurchasePrice" class="form-control" placeholder="0.00" />
+                                </div>
+                                <span asp-validation-for="PurchasePrice" class="text-danger"></span>
+                            </div>
+                        </div>
 
-                <div class="mb-3">
-                    <input type="submit" value="Save Product" class="btn btn-success" />
-                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                        <!-- Personal Notes -->
+                        <div class="mb-4">
+                            <label asp-for="PersonalNotes" class="form-label">Notes</label>
+                            <textarea asp-for="PersonalNotes" class="form-control" rows="2" placeholder="E.g. Bought at Pharmacy..."></textarea>
+                            <span asp-validation-for="PersonalNotes" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Save to Shelf</button>
+                            <a asp-action="Index" class="btn btn-link text-decoration-none">Cancel</a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

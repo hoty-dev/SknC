@@ -1,0 +1,55 @@
+@model SknC.Web.Models.ViewModels.CreateProductViewModel
+@using SknC.Web.Core.Enums
+
+@{
+    ViewData["Title"] = "Add to Catalog";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Add New Product to Catalog</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label asp-for="Brand" class="form-label fw-bold"></label>
+                                <input asp-for="Brand" class="form-control" placeholder="Brand Name" />
+                                <span asp-validation-for="Brand" class="text-danger"></span>
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="Category" class="form-label fw-bold"></label>
+                                <select asp-for="Category" asp-items="Html.GetEnumSelectList<ProductCategory>()" class="form-select"></select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CommercialName" class="form-label fw-bold"></label>
+                            <input asp-for="CommercialName" class="form-control" placeholder="Product Name" />
+                            <span asp-validation-for="CommercialName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Barcode" class="form-label fw-bold"></label>
+                            <input asp-for="Barcode" class="form-control" placeholder="Optional Barcode" />
+                        </div>
+
+                        <!-- MULTI-SELECT INGREDIENTS -->
+                        <div class="mb-4">
+                            <label asp-for="SelectedIngredientIds" class="form-label fw-bold">Active Ingredients (Hold Ctrl to select multiple)</label>
+                            <select asp-for="SelectedIngredientIds" asp-items="Model.AvailableIngredients" class="form-control" multiple style="height: 150px;"></select>
+                            <div class="form-text">Select the key ingredients this product contains. This enables conflict checking.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">Save Product</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

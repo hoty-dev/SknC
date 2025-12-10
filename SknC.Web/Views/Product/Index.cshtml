@@ -1,0 +1,59 @@
+@model IEnumerable<SknC.Web.Core.Entities.ProductReference>
+
+@{
+    ViewData["Title"] = "Product Catalog";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Global Product Catalog 🛍️</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Add Product</a>
+    </div>
+
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Brand</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Key Ingredients</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-primary">@item.Brand</td>
+                    <td>@item.CommercialName</td>
+                    <td><span class="badge bg-secondary">@item.Category</span></td>
+                    <td>
+                        @if (item.ProductIngredients.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach (var pi in item.ProductIngredients)
+                                {
+                                    <span class="badge bg-info text-dark border" style="font-size: 0.75rem;">
+                                        @pi.Ingredient?.InciName
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">-</span>
+                        }
+                    </td>
+                    <td>
+                        <!-- Botón para agregar directamente a mi inventario -->
+                        <a asp-controller="Inventory" asp-action="Create" 
+                           asp-route-productReferenceId="@item.Id" 
+                           class="btn btn-sm btn-outline-success" title="I have this!">
+                           + My Shelf
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

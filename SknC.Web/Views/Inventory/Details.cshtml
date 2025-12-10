@@ -1,0 +1,74 @@
+@model SknC.Web.Core.Entities.InventoryProduct
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<div class="container mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3">&larr; Back to Shelf</a>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <span class="badge bg-primary float-end">@Model.ProductReference?.Category</span>
+            <h2 class="h4 mb-0 text-primary">@Model.ProductReference?.Brand</h2>
+            <h3 class="h5 text-muted">@Model.ProductReference?.CommercialName</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Columna Izquierda: Datos de Uso Personal -->
+                <div class="col-md-6 border-end">
+                    <h5 class="fw-bold text-dark">My Usage</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <strong>Status:</strong> 
+                            <span class="badge bg-secondary">@Model.Status</span>
+                        </li>
+                        <li class="mb-2">
+                            <strong>Opened:</strong> 
+                            @(Model.DateOpened.HasValue ? Model.DateOpened.Value.ToShortDateString() : "Not opened yet")
+                        </li>
+                        <li class="mb-2">
+                            <strong>Price Paid:</strong> 
+                            @(Model.PurchasePrice.HasValue ? "$" + Model.PurchasePrice : "-")
+                        </li>
+                        <li class="mb-2">
+                            <strong>Personal Notes:</strong><br/>
+                            <em class="text-muted">"@Model.PersonalNotes"</em>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Columna Derecha: Composición Química (Lo nuevo) -->
+                <div class="col-md-6">
+                    <h5 class="fw-bold text-dark">🧪 Active Composition</h5>
+                    <hr class="my-2"/>
+                    
+                    @if (Model.ProductReference?.ProductIngredients != null && Model.ProductReference.ProductIngredients.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var pi in Model.ProductReference.ProductIngredients)
+                            {
+                                <span class="badge bg-info text-dark border" title="Function: @pi.Ingredient?.Function">
+                                    @pi.Ingredient?.InciName 
+                                    @if(!string.IsNullOrEmpty(pi.Concentration)) 
+                                    { 
+                                        <small class="fw-bold">(@pi.Concentration)</small> 
+                                    }
+                                </span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light text-center border">
+                            <small class="text-muted">No ingredient data available for this product.</small>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-light text-end">
+            <small class="text-muted">Product ID: @Model.ProductReferenceId</small>
+        </div>
+    </div>
+</div>

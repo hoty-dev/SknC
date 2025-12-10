@@ -3,38 +3,46 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 25/11/2025
+ * Date: 10/12/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
 
-using Microsoft.AspNetCore.Authorization; // Necesary for [Authorize]
-using Microsoft.AspNetCore.Identity; // Necesary for UserManager
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SknC.Web.Core.Entities;
 using SknC.Web.Infrastructure.Data;
 using SknC.Web.Models.ViewModels;
+using SknC.Web.Services; // Important: Service namespace
 
 namespace SknC.Web.Controllers
 {
-    [Authorize] // Protects the entire controller
+    [Authorize]
     public class RoutineController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly UserManager<User> _userManager; // Inject UserManager
-        public RoutineController(AppDbContext context, UserManager<User> userManager)
+        private readonly UserManager<User> _userManager;
+        private readonly IRoutineAnalysisService _analysisService; // Injecting the service
+
+        // Updated constructor
+        public RoutineController(
+            AppDbContext context, 
+            UserManager<User> userManager,
+            IRoutineAnalysisService analysisService)
         {
             _context = context;
             _userManager = userManager;
+            _analysisService = analysisService;
         }
 
         // GET: /Routine
         public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User);
-            if (userId == null) return Challenge(); // If no user, force login
+            if (userId == null) return Challenge();
 
             var routines = await _context.Routines
                 .Where(r => r.UserId == userId)
@@ -85,13 +93,20 @@ namespace SknC.Web.Controllers
             var userId = _userManager.GetUserId(User);
             if (userId == null) return Challenge();
 
+            // DEEP QUERY: Drill down to ingredients for analysis
             var routine = await _context.Routines
                 .Include(r => r.Steps)
                     .ThenInclude(s => s.InventoryProduct)
                         .ThenInclude(ip => ip.ProductReference)
+                            .ThenInclude(pr => pr.ProductIngredients) // <--- Join table
+                                .ThenInclude(pi => pi.Ingredient)     // <--- Actual ingredient
                 .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
 
             if (routine == null) return NotFound();
+
+            // EXECUTE CHEMICAL ANALYSIS
+            var conflicts = _analysisService.AnalyzeRoutine(routine);
+            ViewBag.Conflicts = conflicts; // Pass the alert list to the view
 
             var viewModel = new RoutineDetailViewModel
             {

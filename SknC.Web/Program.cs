@@ -23,7 +23,7 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
-        builder.Services.AddRazorPages(); // 1. IMPORTANTE: Necesario para las pantallas de Identity
+        builder.Services.AddRazorPages();
 
         // Configure DbContext
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -39,8 +39,10 @@ public class Program
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
         })
-        .AddDefaultUI() // 2. IMPORTANTE: Asegura que las rutas de login por defecto funcionen
+        .AddDefaultUI()
         .AddEntityFrameworkStores<AppDbContext>();
+
+        builder.Services.AddScoped<SknC.Web.Services.IRoutineAnalysisService, SknC.Web.Services.RoutineAnalysisService>();
 
         var app = builder.Build();
 
@@ -71,8 +73,8 @@ public class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
-        app.UseAuthentication(); // 3. ¿Quién sos?
-        app.UseAuthorization();  // 4. ¿Qué podés hacer?
+        app.UseAuthentication(); // Who are you?
+        app.UseAuthorization();  // What can you do?
 
         app.MapStaticAssets();
         
@@ -81,7 +83,7 @@ public class Program
             pattern: "{controller=Home}/{action=Index}/{id?}")
             .WithStaticAssets();
         
-        app.MapRazorPages(); // 5. Mapear las rutas de login
+        app.MapRazorPages();
 
         await app.RunAsync();
     }

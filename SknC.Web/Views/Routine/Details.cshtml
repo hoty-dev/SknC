@@ -11,6 +11,21 @@
         <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Routines</a>
     </div>
 
+    <!-- CONFLICT ALERTS (Ticket #16) -->
+    <!-- This block checks if the controller detected any chemical conflicts -->
+    @if (ViewBag.Conflicts != null && ((List<string>)ViewBag.Conflicts).Any())
+    {
+        <div class="alert alert-warning border-start border-warning border-4 shadow-sm mb-4" role="alert">
+            <h5 class="alert-heading fw-bold">⚠️ Interaction Check</h5>
+            <ul class="mb-0 ps-3">
+                @foreach (var warning in (List<string>)ViewBag.Conflicts)
+                {
+                    <li>@warning</li>
+                }
+            </ul>
+        </div>
+    }
+
     <div class="row">
         <!-- LEFT COLUMN: The Routine Steps List -->
         <div class="col-md-7">

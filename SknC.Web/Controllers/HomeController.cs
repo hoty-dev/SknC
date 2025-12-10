@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 25/11/2025
+ * Date: 10/12/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -20,12 +20,12 @@ using SknC.Web.Models.ViewModels;
 
 namespace SknC.Web.Controllers
 {
-    [Authorize] // Protects Dashboard
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly AppDbContext _context;
-        private readonly UserManager<User> _userManager; // Inject UserManager
+        private readonly UserManager<User> _userManager;
 
         public HomeController(ILogger<HomeController> logger, AppDbContext context, UserManager<User> userManager)
         {
@@ -36,29 +36,29 @@ namespace SknC.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Get the real user (String)
             var userId = _userManager.GetUserId(User);
-            
-            // If for some reason it is null (expired session), redirect to login
             if (userId == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            // NEW: Fetch full user object to get SkinType
+            var user = await _userManager.GetUserAsync(User);
 
             var today = DateTime.Today;
 
             // 1. Inventory Stats
             var products = await _context.InventoryProducts
-                .Where(i => i.UserId == userId) 
+                .Where(i => i.UserId == userId)
                 .Include(i => i.ProductReference)
                 .ToListAsync();
 
             // 2. Routine Stats
             var totalRoutines = await _context.Routines
-                .CountAsync(r => r.UserId == userId); 
+                .CountAsync(r => r.UserId == userId);
 
             var executionsToday = await _context.RoutineExecutions
                 .Where(e => e.Routine != null && e.Routine.UserId == userId && e.DateExecuted >= today)
                 .CountAsync();
 
-            // 3. CHART DATA LOGIC
+            // 3. Chart Data
             var journalEntries = await _context.JournalEntries
                 .Where(j => j.UserId == userId)
                 .OrderBy(j => j.Date)
@@ -80,7 +80,10 @@ namespace SknC.Web.Controllers
                     .Take(5)
                     .ToList(),
                 ChartLabels = labels,
-                ChartValues = values
+                ChartValues = values,
+                
+                // NEW: Assign Skin Type
+                UserSkinType = user?.SkinType.ToString() ?? "Unknown"
             };
 
             return View(model);

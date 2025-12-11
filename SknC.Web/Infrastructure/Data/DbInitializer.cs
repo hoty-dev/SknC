@@ -21,13 +21,14 @@ namespace SknC.Web.Infrastructure.Data
         {
             context.Database.Migrate();
 
-            // 1. INGREDIENTES (Química Básica)
+            // 1. INGREDIENTS
             if (!context.Ingredients.Any())
             {
                 var ingredients = new Ingredient[]
                 {
                     new Ingredient { InciName = "Retinol", CommonName = "Vitamin A", Function = IngredientFunction.Retinoid, Description = "Anti-aging powerhouse." },
-                    new Ingredient { InciName = "Glycolic Acid", CommonName = "AHA", Function = IngredientFunction.Exfoliant, Description = "Chemical exfoliant." },
+                    // UPDATED: Glycolic Acid flagged for Sensitive Skin (Ticket #32)
+                    new Ingredient { InciName = "Glycolic Acid", CommonName = "AHA", Function = IngredientFunction.Exfoliant, Description = "Strong exfoliant.", NotRecommendedFor = SkinType.Sensitive },
                     new Ingredient { InciName = "Ascorbic Acid", CommonName = "Vitamin C", Function = IngredientFunction.Antioxidant, Description = "Brightening agent." },
                     new Ingredient { InciName = "Niacinamide", CommonName = "Vitamin B3", Function = IngredientFunction.Active, Description = "Barrier repair." }
                 };
@@ -35,7 +36,7 @@ namespace SknC.Web.Infrastructure.Data
                 await context.SaveChangesAsync();
             }
 
-            // 2. PRODUCTOS (Catálogo)
+            // 2. PRODUCTS
             if (!context.ProductReferences.Any())
             {
                 var retinolSerum = new ProductReference { Brand = "The Ordinary", CommercialName = "Retinol 1% in Squalane", Category = ProductCategory.Serum, Barcode = "111" };
@@ -46,8 +47,7 @@ namespace SknC.Web.Infrastructure.Data
                 context.ProductReferences.AddRange(retinolSerum, glycolicToner, vitCSerum, moisturizer);
                 await context.SaveChangesAsync();
 
-                // 3. VINCULAR (La Mezcla) - Obtenemos IDs generados
-                // Retinol Clash: Retinol + Exfoliante es una mezcla fuerte
+                // 3. LINK INGREDIENTS TO PRODUCTS
                 var retinol = await context.Ingredients.FirstAsync(i => i.InciName == "Retinol");
                 var glycolic = await context.Ingredients.FirstAsync(i => i.InciName == "Glycolic Acid");
                 
@@ -57,7 +57,7 @@ namespace SknC.Web.Infrastructure.Data
                 await context.SaveChangesAsync();
             }
 
-            // 4. USUARIO DE PRUEBA
+            // 4. TEST USER (Configured with Sensitive Skin for testing)
             if (!userManager.Users.Any())
             {
                 var user = new User
@@ -65,7 +65,7 @@ namespace SknC.Web.Infrastructure.Data
                     UserName = "test@sknc.app",
                     Email = "test@sknc.app",
                     FullName = "Test User",
-                    SkinType = SkinType.Combination,
+                    SkinType = SkinType.Sensitive, // Set to Sensitive to trigger the warning
                     EmailConfirmed = true
                 };
                 await userManager.CreateAsync(user, "Pa$$w0rd");

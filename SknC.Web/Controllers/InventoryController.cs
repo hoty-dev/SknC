@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 10/12/2025
+ * Date: 11/12/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using SknC.Web.Core.Entities;
 using SknC.Web.Infrastructure.Data;
 using SknC.Web.Models.ViewModels;
+using SknC.Web.Services; // Namespace for the analysis service
 
 namespace SknC.Web.Controllers
 {
@@ -24,11 +25,16 @@ namespace SknC.Web.Controllers
     {
         private readonly AppDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IRoutineAnalysisService _analysisService; // Inject Analysis Service
 
-        public InventoryController(AppDbContext context, UserManager<User> userManager)
+        public InventoryController(
+            AppDbContext context, 
+            UserManager<User> userManager,
+            IRoutineAnalysisService analysisService)
         {
             _context = context;
             _userManager = userManager;
+            _analysisService = analysisService;
         }
 
         // GET: /Inventory
@@ -48,7 +54,8 @@ namespace SknC.Web.Controllers
         }
 
         // GET: /Inventory/Create
-        public IActionResult Create(int? productReferenceId)
+        // UPDATE: Async to support fetching user and product data for analysis
+        public async Task<IActionResult> Create(int? productReferenceId)
         {
             var viewModel = new AddInventoryItemViewModel
             {
@@ -61,6 +68,31 @@ namespace SknC.Web.Controllers
                     })
                     .ToList()
             };
+
+            // NEW LOGIC: Pre-emptive Skin Type Warning (Ticket #32)
+            // If a product is selected from catalog, check if it's safe for the user
+            if (productReferenceId.HasValue && productReferenceId.Value > 0)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var userSkinType = user?.SkinType ?? Core.Enums.SkinType.Normal;
+
+                var product = await _context.ProductReferences
+                    .Include(p => p.ProductIngredients)
+                    .ThenInclude(pi => pi.Ingredient)
+                    .FirstOrDefaultAsync(p => p.Id == productReferenceId.Value);
+
+                if (product != null)
+                {
+                    // Run the specific product analysis
+                    var warnings = _analysisService.AnalyzeProduct(product, userSkinType);
+                    
+                    if (warnings.Any())
+                    {
+                        // Pass warnings to the view to show the red alert
+                        ViewBag.SkinWarnings = warnings;
+                    }
+                }
+            }
 
             return View(viewModel);
         }

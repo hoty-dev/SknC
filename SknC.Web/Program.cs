@@ -43,6 +43,7 @@ public class Program
         .AddEntityFrameworkStores<AppDbContext>();
 
         builder.Services.AddScoped<SknC.Web.Services.IRoutineAnalysisService, SknC.Web.Services.RoutineAnalysisService>();
+        builder.Services.AddScoped<SknC.Web.Services.IStatisticsService, SknC.Web.Services.StatisticsService>();
 
         var app = builder.Build();
 

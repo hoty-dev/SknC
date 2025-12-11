@@ -1,0 +1,84 @@
+@model IEnumerable<SknC.Web.Core.Entities.JournalEntry>
+
+@{
+    ViewData["Title"] = "Gallery & Progress";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Progress Gallery 📸</h2>
+        <a asp-controller="Journal" asp-action="Create" class="btn btn-outline-primary">+ Add New Photo</a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-light text-center py-5 border">
+            <h4>No photos yet!</h4>
+            <p>Upload photos in your Journal to start tracking visual progress.</p>
+        </div>
+    }
+    else
+    {
+        <form asp-action="Compare" method="post">
+            <div class="sticky-top bg-white py-3 border-bottom mb-3 d-flex justify-content-between align-items-center" style="z-index: 100;">
+                <h5 class="m-0 text-muted">Select exactly 2 photos to compare</h5>
+                <button type="submit" class="btn btn-primary" id="compareBtn" disabled>
+                    Compare Selected (0/2)
+                </button>
+            </div>
+
+            <div class="row row-cols-2 row-cols-md-4 g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm photo-card position-relative">
+                            <!-- Checkbox Overlay -->
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <input type="checkbox" name="selectedIds" value="@item.Id" class="form-check-input border-2" style="width: 1.5em; height: 1.5em;" onchange="updateSelection()" />
+                            </div>
+                            
+                            <img src="@item.PhotoPath" class="card-img-top" alt="Progress photo" style="height: 200px; object-fit: cover;">
+                            
+                            <div class="card-body p-2 text-center">
+                                <small class="fw-bold d-block">@item.Date.ToString("MMM dd, yyyy")</small>
+                                <span class="badge bg-light text-dark border">Rating: @item.OverallRating/10</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function updateSelection() {
+            // Count checked boxes
+            const checkboxes = document.querySelectorAll('input[name="selectedIds"]:checked');
+            const count = checkboxes.length;
+            const btn = document.getElementById('compareBtn');
+
+            // Update button text
+            btn.innerText = `Compare Selected (${count}/2)`;
+
+            // Enable button only if exactly 2 are selected
+            if (count === 2) {
+                btn.disabled = false;
+                // Optional: Disable other checkboxes to prevent selecting more
+                document.querySelectorAll('input[name="selectedIds"]:not(:checked)').forEach(cb => cb.disabled = true);
+            } else {
+                btn.disabled = true;
+                // Re-enable all checkboxes if less than 2
+                document.querySelectorAll('input[name="selectedIds"]').forEach(cb => cb.disabled = false);
+            }
+        }
+    </script>
+}

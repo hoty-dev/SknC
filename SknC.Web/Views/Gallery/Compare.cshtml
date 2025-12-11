@@ -1,0 +1,45 @@
+@model SknC.Web.Models.ViewModels.PhotoComparisonViewModel
+
+@{
+    ViewData["Title"] = "Before & After";
+}
+
+<div class="container mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3">&larr; Back to Gallery</a>
+
+    <h2 class="text-center mb-4">Progress Comparison</h2>
+
+    <div class="row">
+        <!-- BEFORE COLUMN -->
+        <div class="col-md-6">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-header bg-warning text-dark text-center fw-bold">
+                    BEFORE (@Model.BeforeEntry.Date.ToString("MMM dd, yyyy"))
+                </div>
+                <div class="card-body p-0 bg-light d-flex align-items-center justify-content-center" style="min-height: 400px;">
+                    <img src="@Model.BeforeEntry.PhotoPath" class="img-fluid" style="max-height: 500px;" alt="Before photo">
+                </div>
+                <div class="card-footer bg-white">
+                    <p class="mb-1"><strong>Rating:</strong> <span class="badge bg-secondary">@Model.BeforeEntry.OverallRating/10</span></p>
+                    <p class="mb-0 text-muted small fst-italic">"@Model.BeforeEntry.Notes"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AFTER COLUMN -->
+        <div class="col-md-6">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-header bg-success text-white text-center fw-bold">
+                    AFTER (@Model.AfterEntry.Date.ToString("MMM dd, yyyy"))
+                </div>
+                <div class="card-body p-0 bg-light d-flex align-items-center justify-content-center" style="min-height: 400px;">
+                    <img src="@Model.AfterEntry.PhotoPath" class="img-fluid" style="max-height: 500px;" alt="After photo">
+                </div>
+                <div class="card-footer bg-white">
+                    <p class="mb-1"><strong>Rating:</strong> <span class="badge bg-primary">@Model.AfterEntry.OverallRating/10</span></p>
+                    <p class="mb-0 text-muted small fst-italic">"@Model.AfterEntry.Notes"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

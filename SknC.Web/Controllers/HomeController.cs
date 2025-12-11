@@ -17,6 +17,7 @@ using SknC.Web.Core.Entities;
 using SknC.Web.Infrastructure.Data;
 using SknC.Web.Models;
 using SknC.Web.Models.ViewModels;
+using SknC.Web.Services;
 
 namespace SknC.Web.Controllers
 {
@@ -26,12 +27,18 @@ namespace SknC.Web.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly AppDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IStatisticsService _statsService;
 
-        public HomeController(ILogger<HomeController> logger, AppDbContext context, UserManager<User> userManager)
+        public HomeController(
+            ILogger<HomeController> logger, 
+            AppDbContext context, 
+            UserManager<User> userManager,
+            IStatisticsService statsService)
         {
             _logger = logger;
             _context = context;
             _userManager = userManager;
+            _statsService = statsService;
         }
 
         public async Task<IActionResult> Index()
@@ -39,9 +46,7 @@ namespace SknC.Web.Controllers
             var userId = _userManager.GetUserId(User);
             if (userId == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            // NEW: Fetch full user object to get SkinType
             var user = await _userManager.GetUserAsync(User);
-
             var today = DateTime.Today;
 
             // 1. Inventory Stats
@@ -51,14 +56,16 @@ namespace SknC.Web.Controllers
                 .ToListAsync();
 
             // 2. Routine Stats
-            var totalRoutines = await _context.Routines
-                .CountAsync(r => r.UserId == userId);
-
+            var totalRoutines = await _context.Routines.CountAsync(r => r.UserId == userId);
             var executionsToday = await _context.RoutineExecutions
                 .Where(e => e.Routine != null && e.Routine.UserId == userId && e.DateExecuted >= today)
                 .CountAsync();
 
-            // 3. Chart Data
+            // 3. HABIT STATS (Ticket #30)
+            var streak = await _statsService.CalculateCurrentStreakAsync(userId);
+            var consistency = await _statsService.CalculateMonthlyConsistencyAsync(userId);
+
+            // 4. Chart Data
             var journalEntries = await _context.JournalEntries
                 .Where(j => j.UserId == userId)
                 .OrderBy(j => j.Date)
@@ -68,21 +75,24 @@ namespace SknC.Web.Controllers
             var labels = journalEntries.Select(j => j.Date.ToString("dd/MM")).ToArray();
             var values = journalEntries.Select(j => j.OverallRating).ToArray();
 
-            // 4. Build ViewModel
             var model = new DashboardViewModel
             {
                 TotalProducts = products.Count,
                 ActiveProducts = products.Count(p => p.Status == Core.Enums.ProductStatus.InUse),
                 TotalRoutines = totalRoutines,
                 CompletedToday = executionsToday,
+                
+                // Nuevas propiedades
+                CurrentStreak = streak,
+                MonthlyConsistency = consistency,
+
                 ExpiringSoon = products
                     .Where(p => p.Status == Core.Enums.ProductStatus.InUse && p.IsExpired())
                     .Take(5)
                     .ToList(),
+                
                 ChartLabels = labels,
                 ChartValues = values,
-                
-                // NEW: Assign Skin Type
                 UserSkinType = user?.SkinType.ToString() ?? "Unknown"
             };
 

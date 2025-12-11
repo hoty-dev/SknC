@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 10/12/2025
+ * Date: 11/12/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -15,13 +15,13 @@ namespace SknC.Web.Services
 {
     public interface IRoutineAnalysisService
     {
-        List<string> AnalyzeRoutine(Routine routine);
+        List<string> AnalyzeRoutine(Routine routine, SkinType userSkinType);
+        // NEW: Analyze a single product for skin type compatibility
+        List<string> AnalyzeProduct(ProductReference product, SkinType userSkinType);
     }
 
     public class RoutineAnalysisService : IRoutineAnalysisService
     {
-        // Reglas "Hardcoded" para el MVP. 
-        // En el futuro, esto podría venir de base de datos.
         private readonly List<(IngredientFunction A, IngredientFunction B, string Message)> _conflictRules = new()
         {
             (IngredientFunction.Retinoid, IngredientFunction.Exfoliant, "⚠️ Caution: Mixing Retinol and Exfoliants (AHA/BHA) can cause severe irritation."),
@@ -30,12 +30,10 @@ namespace SknC.Web.Services
             (IngredientFunction.Retinoid, IngredientFunction.Antioxidant, "ℹ️ Tip: Some users prefer using Vitamin C in AM and Retinol in PM to maximize stability.")
         };
 
-        public List<string> AnalyzeRoutine(Routine routine)
+        public List<string> AnalyzeRoutine(Routine routine, SkinType userSkinType)
         {
             var warnings = new List<string>();
             
-            // 1. Aplanar todos los ingredientes de la rutina en una lista
-            // Routine -> Steps -> InventoryProduct -> ProductReference -> Ingredients
             var allIngredients = routine.Steps
                 .Where(s => s.InventoryProduct?.ProductReference != null)
                 .SelectMany(s => s.InventoryProduct!.ProductReference!.ProductIngredients)
@@ -45,19 +43,15 @@ namespace SknC.Web.Services
 
             if (!allIngredients.Any()) return warnings;
 
-            // 2. Chequear cada regla contra los ingredientes presentes
+            // 1. Chemical Conflicts
             foreach (var rule in _conflictRules)
             {
                 bool hasA = allIngredients.Any(i => i!.Function == rule.A);
                 bool hasB = allIngredients.Any(i => i!.Function == rule.B);
 
-                // Caso especial: Si la regla es A vs A (ej: doble retinol), necesitamos contar que haya > 1
                 if (rule.A == rule.B)
                 {
-                    if (allIngredients.Count(i => i!.Function == rule.A) > 1)
-                    {
-                        warnings.Add(rule.Message);
-                    }
+                    if (allIngredients.Count(i => i!.Function == rule.A) > 1) warnings.Add(rule.Message);
                 }
                 else if (hasA && hasB)
                 {
@@ -65,7 +59,36 @@ namespace SknC.Web.Services
                 }
             }
 
+            // 2. Skin Type Compatibility
+            foreach (var ingredient in allIngredients)
+            {
+                if (ingredient!.NotRecommendedFor.HasValue && ingredient.NotRecommendedFor.Value == userSkinType)
+                {
+                    warnings.Add($"🛑 Skin Type Alert: '{ingredient.InciName}' is not recommended for {userSkinType} skin.");
+                }
+            }
+
             return warnings.Distinct().ToList();
+        }
+
+        // NEW METHOD: Single Product Analysis
+        public List<string> AnalyzeProduct(ProductReference product, SkinType userSkinType)
+        {
+            var warnings = new List<string>();
+
+            if (product.ProductIngredients == null || !product.ProductIngredients.Any()) 
+                return warnings;
+
+            foreach (var pi in product.ProductIngredients)
+            {
+                var ingredient = pi.Ingredient;
+                if (ingredient != null && ingredient.NotRecommendedFor.HasValue && ingredient.NotRecommendedFor.Value == userSkinType)
+                {
+                    warnings.Add($"🛑 Skin Type Alert: '{ingredient.InciName}' is not recommended for {userSkinType} skin.");
+                }
+            }
+
+            return warnings;
         }
     }
 }

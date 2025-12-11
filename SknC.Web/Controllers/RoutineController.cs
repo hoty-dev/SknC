@@ -3,7 +3,7 @@
  * Copyright (c) 2025 Javier Granero. All rights reserved.
  * * Project: SknC (Skincare Management System)
  * Author: Javier Granero
- * Date: 10/12/2025
+ * Date: 11/12/2025
  * * This software is the confidential and proprietary information of the author.
  * =========================================================================================
 */
@@ -104,8 +104,12 @@ namespace SknC.Web.Controllers
 
             if (routine == null) return NotFound();
 
-            // EXECUTE CHEMICAL ANALYSIS
-            var conflicts = _analysisService.AnalyzeRoutine(routine);
+            // 1. Get User Profile to access SkinType (Ticket #32)
+            var user = await _userManager.GetUserAsync(User);
+            var userSkinType = user?.SkinType ?? Core.Enums.SkinType.Normal; // Fallback
+
+            // 2. EXECUTE CHEMICAL & SKIN TYPE ANALYSIS
+            var conflicts = _analysisService.AnalyzeRoutine(routine, userSkinType);
             ViewBag.Conflicts = conflicts; // Pass the alert list to the view
 
             var viewModel = new RoutineDetailViewModel

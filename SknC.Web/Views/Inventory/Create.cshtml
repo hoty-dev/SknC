@@ -8,6 +8,23 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
+            
+            <!-- NEW: PRE-ADDITION WARNING (Ticket #32) -->
+            <!-- If the controller detected a skin type conflict, it shows up here -->
+            @if (ViewBag.SkinWarnings != null && ((List<string>)ViewBag.SkinWarnings).Any())
+            {
+                <div class="alert alert-danger shadow-sm border-start border-danger border-4 mb-4">
+                    <h5 class="alert-heading fw-bold">⚠️ Wait! Check this out</h5>
+                    <p class="mb-1">This product might not be suitable for your skin type:</p>
+                    <ul class="mb-0 ps-3">
+                        @foreach (var warning in (List<string>)ViewBag.SkinWarnings)
+                        {
+                            <li>@warning</li>
+                        }
+                    </ul>
+                </div>
+            }
+
             <div class="card shadow-sm">
                 <div class="card-header bg-white">
                     <h4 class="mb-0">Add New Product</h4>
@@ -17,7 +34,6 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         <!-- Product Selection Dropdown -->
-                        <!-- If ProductReferenceId is set in the Model, this dropdown will auto-select it -->
                         <div class="mb-3">
                             <label asp-for="ProductReferenceId" class="form-label fw-bold"></label>
                             <select asp-for="ProductReferenceId" asp-items="Model.ProductList" class="form-select">
